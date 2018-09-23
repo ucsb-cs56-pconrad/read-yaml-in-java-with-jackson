@@ -148,3 +148,148 @@ It's a good idea to add these lines into the .gitignore provided for java.   The
 target/
 ```
 
+# Turning to the tutorial
+
+The tutorial specifies the dependencies; those go into the `<dependencies>` section of our `pom.xml`.
+
+For example, the tutorial specifies this dependency, along with two others:
+
+```
+<dependency>
+  <groupId>com.fasterxml.jackson.dataformat</groupId>
+  <artifactId>jackson-dataformat-yaml</artifactId>
+  <version>2.3.0</version>
+</dependency>
+```			     
+
+However, rather than just blindly copying and pasting each of these, it's a good idea to see if there is a later version that might have bug fixes, compatibility with later versions of Java, etc.
+
+So, we look each of these up by going a web search on the artifactId along with Maven Central, e.g.:
+
+* <https://www.google.com/search?q=jackson-dataformat-yaml+maven+central>
+
+That leads us to this site:
+
+* <https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.9.6>
+
+And we see that for the latest version, the `<dependency>` element for Maven is this:
+
+```xml
+<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml -->
+<dependency>
+  <groupId>com.fasterxml.jackson.dataformat</groupId>
+  <artifactId>jackson-dataformat-yaml</artifactId>
+  <version>2.9.6</version>
+</dependency>
+```
+
+Copying the comment with the URL along with the dependency isn't required, but it is handy as a reference
+in case we want to go back later and see if there is a newer version.  So, I suggest always copying it along with the `<dependency>` element.
+
+# Test yaml file
+
+The next thing in the tutorial is an example yaml file:
+
+```yaml
+# Details of a user
+---
+name: Test User
+age: 30
+address:
+  line1: My Address Line 1
+  line2: Address line 2
+  city: Washington D.C.
+  zip: 20000
+roles:
+  - User
+  - Editor
+```
+
+We'll create a directory called `testdata` and put the file `user1.yaml` in that directory.
+
+# The Java Bean
+
+The tutorial then refers to a `User.java` "Bean".
+
+A "Bean" is just a "plain old Java class" that follows a certain set of conventions.  The most important of these are:
+* a no-argument constructor
+* getters and setters for each property that follow the standard naming convention.
+
+The "Bean" convention is used frequently in Java programming to make it easy for various tools to use *reflection* to automatically discover things about your code and allow "magic" to happen.   
+
+We see that the `User.java` file already specifies a package, namely `com.mms.mja.blog.demo.yaml`.  So,
+we'll create that directory under `src/main/java`
+
+```
+mkdir -p src/main/java/com/mms/mja/blog/demo/yaml
+```
+
+Then, using either emacs or vim, we can edit that file and paste in the code from the tutorial:
+
+```
+emacs src/main/java/com/mms/mja/blog/demo/yaml/User.java
+```
+
+The next file is `YamlTesting.java` which we can put into the same directory, since it's in the same package:
+
+```
+emacs src/main/java/com/mms/mja/blog/demo/yaml/YamlTesting.java
+```
+
+With this file in place, we could either replace the property
+
+```
+    <userDefinedMainClass>${project.groupId}.yaml.Demo01</userDefinedMainClass>
+```
+
+With this, i.e. the fully specified name of the class containing the `main` from the demo,
+which would allow us to run the file with `mvn exec:java`
+
+```
+    <userDefinedMainClass>com.mms.mja.blog.demo.yaml.YamlTesting</userDefinedMainClass>
+```
+
+Note, though, that this code refers to `user.yaml`, which we stored in a directory
+called `testdata` under the filename `user1.yaml`.  So, we'll need to modify line 16 of the code
+to read:
+
+```
+    User user = mapper.readValue(new File("testdata/user1.yaml"), User.class);
+```
+
+Or, we can leave our main class as it was, so that we can try writing our own yaml demo, and
+instead run the original demo code by running `mvn package` to create a jar file with all of the
+dependencies, and specifying the class path and fully qualified class name
+like this:
+
+```
+mvn package
+java -cp target/yaml-Demo01-1.0-jar-with-dependencies.jar com.mms.mja.blog.demo.yaml.YamlTesting
+```
+
+That looks like this, matching the output in the tutorial:
+
+```
+$ java -cp target/yaml-Demo01-1.0-jar-with-dependencies.jar com.mms.mja.blog.demo.yaml.YamlTesting
+com.mms.mja.blog.demo.yaml.User@1e127982[
+  name=Test User
+  age=30
+  address={line1=My Address Line 1, line2=Address line 2, city=Washington D.C., zip=20000}
+  roles={User,Editor}
+]
+$ 
+```
+
+# What next?
+
+So, what we might do next is see if we can apply this to another problem.
+
+For example, suppose we want to be able to store information about Student objects (with name, perm, majors)
+in a Yaml file, and then load that file into an ArrayList<Student>.
+
+The first step is to create a Student.java class with the appopriate getters and setters.
+
+We put this in `src/main/java/edu/ucsb/cs56/pconrad/yaml/Student.java`
+
+We also add tests for this in `src/test/java/edu/ucsb/cs56/pconrad/yaml/StudentTest.java`
+
